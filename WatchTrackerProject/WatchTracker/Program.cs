@@ -27,16 +27,29 @@ class Program
     {
         LoadWatchList();
 
+        string error = null;
+
         while (true)
         {
             DisplayWatchList();
             Console.WriteLine("");
             Console.WriteLine("========== Main Menu ==========");
+
+            if (error != null)
+            {
+                Console.WriteLine(error);
+                error = null;
+            }
+
             Console.WriteLine("Please enter an option: [1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit");
+
             string? input = Console.ReadLine();
             int option;
             if (int.TryParse(input, out option))
             {
+                DisplayWatchList();
+                Console.WriteLine("");
+
                 switch (option)
                 {
                     case 1:
@@ -55,20 +68,26 @@ class Program
                         Exit();
                         return;
                     default:
-                        Console.WriteLine("Invalid option. Please try again.");
+                        error = "Invalid option. Please try again.";
                         break;
                 }
             }
             else
             {
-                Console.WriteLine("Invalid input. Please try again.");
+                error = "Invalid input. Please try again.";
             }
         }
     }
 
+    static string GetWatchListItemDisplayString(int i)
+    {
+        var item = watchList[i];
+        return $"{i + 1}. Title: {item.Title}, Genre: {item.Genre}, Progress: {item.Progress}, Type: {item.ItemType}";
+    }
+
     static void DisplayWatchList()
     {
-        Console.WriteLine("");
+        Console.Clear();
         Console.WriteLine("========== Watch List ==========");
         if (watchList.Count == 0)
         {
@@ -78,8 +97,7 @@ class Program
         {
             for (int i = 0; i < watchList.Count; i++)
             {
-                var item = watchList[i];
-                Console.WriteLine($"{i + 1}. Title: {item.Title}, Genre: {item.Genre}, Progress: {item.Progress}, Type: {item.ItemType}");
+                Console.WriteLine(GetWatchListItemDisplayString(i));
             }
         }
     }
@@ -116,27 +134,21 @@ class Program
         return itemTypeOptions.ToString().TrimEnd(',', ' ');
     }
 
-    static void AddItem()
+    static WatchItem BuildWatchItem(WatchItem item)
     {
-        Console.WriteLine("");
-        Console.WriteLine("========== Add Item ==========");
-        Console.WriteLine("Enter title:");
-        string? title = Console.ReadLine() ?? string.Empty;
-
-        Console.WriteLine("Enter genre:");
-        string? genre = Console.ReadLine() ?? string.Empty;
-
-        Console.WriteLine("Enter progress:");
-        string? progress = Console.ReadLine() ?? string.Empty;
+        item.Title = ReadLineWithDefault("Enter title:", item.Title);
+        item.Genre = ReadLineWithDefault("Enter genre:", item.Genre);
+        item.Progress = ReadLineWithDefault("Enter progress:", item.Progress);
 
         string itemType;
         while (true)
         {
             Console.WriteLine($"Select item type: {GenerateItemTypeOptions()}");
-            string? itemTypeId = Console.ReadLine();
+            string? itemTypeId = ReadLineWithDefault("Enter item type:", ItemTypeNameToId(item.ItemType));
             itemType = ItemTypeIdToName(itemTypeId);
             if (!string.IsNullOrEmpty(itemType))
             {
+                item.ItemType = itemType;
                 break;
             }
             else
@@ -145,14 +157,20 @@ class Program
             }
         }
 
-        watchList.Add(new WatchItem { Title = title, Genre = genre, Progress = progress, ItemType = itemType });
+        return item;
+    }
+
+    static void AddItem()
+    {
+        Console.WriteLine("========== Add Item ==========");
+        var newItem = BuildWatchItem(new WatchItem());
+        watchList.Add(newItem);
         SaveWatchList();
-        Console.WriteLine($"Added {itemType}: {title}, Genre: {genre}, Progress: {progress}");
+        Console.WriteLine($"Added {newItem.ItemType}: {newItem.Title}, Genre: {newItem.Genre}, Progress: {newItem.Progress}");
     }
 
     static void EditItem()
     {
-        Console.WriteLine("");
         Console.WriteLine("========== Edit Item ==========");
         Console.WriteLine("Enter the id of the item you wish to edit (or press enter to return to the watch list):");
         string? idInput = Console.ReadLine();
@@ -165,19 +183,9 @@ class Program
         if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Count)
         {
             var item = watchList[id - 1];
-
-            Console.WriteLine($"Editing item: {item.Title}");
-            item.Title = ReadLineWithDefault("Enter new title:", item.Title);
-            item.Genre = ReadLineWithDefault("Enter new genre:", item.Genre);
-            item.Progress = ReadLineWithDefault("Enter new progress:", item.Progress);
-
-            string? typeInput = ReadLineWithDefault("Select new item type: [1] Movie, [2] TV Show:", ItemTypeNameToId(item.ItemType));
-            int itemType;
-            if (int.TryParse(typeInput, out itemType) && (itemType == 1 || itemType == 2))
-            {
-                item.ItemType = itemType == 1 ? "Movie" : "TV Show";
-            }
-
+            Console.WriteLine($"Editing item: {GetWatchListItemDisplayString(id - 1)}");
+            var updatedItem = BuildWatchItem(item);
+            watchList[id - 1] = updatedItem;
             SaveWatchList();
             Console.WriteLine("Item updated successfully.");
         }
@@ -214,7 +222,6 @@ class Program
 
     static void DeleteItem()
     {
-        Console.WriteLine("");
         Console.WriteLine("========== Delete Item ==========");
         Console.WriteLine("Enter the id of the item you wish to delete (or press enter to return to the watch list):");
         string? idInput = Console.ReadLine();
@@ -256,6 +263,7 @@ class Program
 
     static void Exit()
     {
+        Console.Clear();
         Console.WriteLine("Exiting application...");
     }
 
