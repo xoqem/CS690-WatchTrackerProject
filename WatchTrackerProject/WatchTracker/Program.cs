@@ -22,6 +22,7 @@ class Program
 {
     static List<WatchItem> watchList = new List<WatchItem>();
     static string filePath = "watchlist.json";
+    static int selectedIndex = 0;
 
     static void Main(string[] args)
     {
@@ -34,6 +35,7 @@ class Program
             DisplayWatchList();
             Console.WriteLine("");
             Console.WriteLine("========== Main Menu ==========");
+            Console.WriteLine("Use up / down arrows to highlight an item in the list.");
 
             if (error != null)
             {
@@ -43,38 +45,43 @@ class Program
 
             Console.WriteLine("Please enter an option: [1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit");
 
-            string? input = Console.ReadLine();
-            int option;
-            if (int.TryParse(input, out option))
-            {
-                DisplayWatchList();
-                Console.WriteLine("");
+            var key = Console.ReadKey(true).Key;
+            
+            Console.Clear();
+            DisplayWatchList();
+            Console.WriteLine("");
 
-                switch (option)
-                {
-                    case 1:
-                        AddItem();
-                        break;
-                    case 2:
-                        EditItem();
-                        break;
-                    case 3:
-                        DeleteItem();
-                        break;
-                    case 4:
-                        FilterList();
-                        break;
-                    case 5:
-                        Exit();
-                        return;
-                    default:
-                        error = "Invalid option. Please try again.";
-                        break;
-                }
-            }
-            else
+            switch (key)
             {
-                error = "Invalid input. Please try again.";
+                case ConsoleKey.D1:
+                case ConsoleKey.NumPad1:
+                    AddItem();
+                    break;
+                case ConsoleKey.D2:
+                case ConsoleKey.NumPad2:
+                    EditItem();
+                    break;
+                case ConsoleKey.D3:
+                case ConsoleKey.NumPad3:
+                    DeleteItem();
+                    break;
+                case ConsoleKey.D4:
+                case ConsoleKey.NumPad4:
+                    FilterList();
+                    break;
+                case ConsoleKey.D5:
+                case ConsoleKey.NumPad5:
+                    Exit();
+                    return;
+                case ConsoleKey.UpArrow:
+                    selectedIndex = (selectedIndex > 0) ? selectedIndex - 1 : watchList.Count - 1;
+                    break;
+                case ConsoleKey.DownArrow:
+                    selectedIndex = (selectedIndex < watchList.Count - 1) ? selectedIndex + 1 : 0;
+                    break;
+                default:
+                    error = "Invalid option. Please try again.";
+                    break;
             }
         }
     }
@@ -88,19 +95,46 @@ class Program
     static void DisplayWatchList()
     {
         Console.Clear();
-        Console.WriteLine("========== Watch List ==========");
+
         if (watchList.Count == 0)
         {
+            Console.WriteLine("========== Watch List ==========");
             Console.WriteLine("No items in watch list.");
+            return;
+        }
+
+        int start, end;
+        if (selectedIndex < 4)
+        {
+            start = 0;
+            end = Math.Min(10, watchList.Count);
+        }
+        else if (selectedIndex >= watchList.Count - 5)
+        {
+            start = Math.Max(0, watchList.Count - 10);
+            end = watchList.Count;
         }
         else
         {
-            for (int i = 0; i < watchList.Count; i++)
+            start = selectedIndex - 4;
+            end = Math.Min(watchList.Count, selectedIndex + 6);
+        }
+
+        Console.WriteLine($"========== Watch List ========== ({start + 1}-{end} of {watchList.Count})");
+
+        for (int i = start; i < end; i++)
+        {
+            if (i == selectedIndex)
             {
-                Console.WriteLine(GetWatchListItemDisplayString(i));
+                Console.BackgroundColor = ConsoleColor.Gray;
+                Console.ForegroundColor = ConsoleColor.Black;
             }
+
+            Console.WriteLine(GetWatchListItemDisplayString(i));
+            Console.ResetColor();
         }
     }
+
 
     static string ItemTypeIdToName(string? itemTypeId)
     {
@@ -171,28 +205,19 @@ class Program
 
     static void EditItem()
     {
-        Console.WriteLine("========== Edit Item ==========");
-        Console.WriteLine("Enter the id of the item you wish to edit (or press enter to return to the watch list):");
-        string? idInput = Console.ReadLine();
-        if (string.IsNullOrEmpty(idInput))
+        if (watchList.Count == 0)
         {
+            Console.WriteLine("No items to edit.");
             return;
         }
 
-        int id;
-        if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Count)
-        {
-            var item = watchList[id - 1];
-            Console.WriteLine($"Editing item: {GetWatchListItemDisplayString(id - 1)}");
-            var updatedItem = BuildWatchItem(item);
-            watchList[id - 1] = updatedItem;
-            SaveWatchList();
-            Console.WriteLine("Item updated successfully.");
-        }
-        else
-        {
-            Console.WriteLine("Invalid id. Please try again.");
-        }
+        Console.WriteLine("========== Edit Item ==========");
+        var item = watchList[selectedIndex];
+        Console.WriteLine($"Editing item: {GetWatchListItemDisplayString(selectedIndex)}");
+        var updatedItem = BuildWatchItem(item);
+        watchList[selectedIndex] = updatedItem;
+        SaveWatchList();
+        Console.WriteLine("Item updated successfully.");
     }
 
     static string ReadLineWithDefault(string prompt, string? defaultValue)
@@ -222,35 +247,25 @@ class Program
 
     static void DeleteItem()
     {
-        Console.WriteLine("========== Delete Item ==========");
-        Console.WriteLine("Enter the id of the item you wish to delete (or press enter to return to the watch list):");
-        string? idInput = Console.ReadLine();
-        if (string.IsNullOrEmpty(idInput))
+        if (watchList.Count == 0)
         {
+            Console.WriteLine("No items to delete.");
             return;
         }
 
-        int id;
-
-        if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Count)
+        Console.WriteLine("========== Delete Item ==========");
+        var item = watchList[selectedIndex];
+        Console.WriteLine($"Are you sure you want to delete: {item.Title}? [y/n]");
+        string? confirmation = Console.ReadLine();
+        if (confirmation?.ToLower() == "y")
         {
-            var item = watchList[id - 1];
-            Console.WriteLine($"Are you sure you want to delete: {item.Title}? [y/n]");
-            string? confirmation = Console.ReadLine();
-            if (confirmation?.ToLower() == "y")
-            {
-                watchList.RemoveAt(id - 1);
-                SaveWatchList();
-                Console.WriteLine("Item deleted successfully.");
-            }
-            else
-            {
-                Console.WriteLine("Deletion cancelled.");
-            }
+            watchList.RemoveAt(selectedIndex);
+            SaveWatchList();
+            Console.WriteLine("Item deleted successfully.");
         }
         else
         {
-            Console.WriteLine("Invalid id. Please try again.");
+            Console.WriteLine("Deletion cancelled.");
         }
     }
 
