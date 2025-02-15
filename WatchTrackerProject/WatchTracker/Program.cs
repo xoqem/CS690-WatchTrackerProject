@@ -27,7 +27,7 @@ class Program
     {
         LoadWatchList();
 
-        string error = null;
+        string? error = null;
 
         while (true)
         {
