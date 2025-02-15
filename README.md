@@ -10,6 +10,7 @@ To do the initial setup and test run of this project I installed .NET 8.0 via ht
 git clone git@github.com:xoqem/CS690-WatchTrackerProject.git
 cd CS690-WatchTrackerProject
 dotnet new sln -o WatchTrackerProject
+dotnet new gitignore
 cd WatchTrackerProject
 dotnet new console -o WatchTracker --use-program-main
 cd WatchTracker
