@@ -249,7 +249,8 @@ public class ConsoleUI
     {
         Console.WriteLine("");
         Console.WriteLine("========== Filter List ==========");
-        Console.WriteLine("Filtering is not implemented yet.");
+        Console.WriteLine("Filtering is not implemented yet. Press enter to return to the main menu.");
+        Console.ReadLine();
     }
 
     void Exit()
