@@ -1,6 +1,6 @@
 namespace WatchTracker;
 
-class WatchItem
+public class WatchItem
 {
     public string? Title { get; set; }
     public string? Genre { get; set; }

@@ -8,7 +8,7 @@ enum ItemType
     TVShow = 2
 }
 
-class ConsoleUI
+public class ConsoleUI
 {
     List<WatchItem> watchList;
     WatchListFileIO watchListFileIO;

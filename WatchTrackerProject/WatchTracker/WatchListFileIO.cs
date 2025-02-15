@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace WatchTracker;
 
-class WatchListFileIO
+public class WatchListFileIO
 {
     private string filePath;
 
