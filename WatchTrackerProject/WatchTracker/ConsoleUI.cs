@@ -159,7 +159,6 @@ public class ConsoleUI
         var newItem = BuildWatchItem(new WatchItem());
         watchList.Add(newItem);
         SaveWatchList();
-        Console.WriteLine($"Added {newItem.ItemType}: {newItem.Title}, Genre: {newItem.Genre}, Progress: {newItem.Progress}");
     }
 
     void EditItem()
@@ -181,7 +180,6 @@ public class ConsoleUI
             var updatedItem = BuildWatchItem(item);
             watchList[id - 1] = updatedItem;
             SaveWatchList();
-            Console.WriteLine("Item updated successfully.");
         }
         else
         {
@@ -194,23 +192,22 @@ public class ConsoleUI
         defaultValue ??= string.Empty;
         Console.Write($"{prompt} {defaultValue}");
         var input = new StringBuilder(defaultValue);
-        ConsoleKeyInfo key;
-
-        while ((key = Console.ReadKey(true)).Key != ConsoleKey.Enter)
+        
+        int key;
+        while ((key = Console.Read()) != (int)ConsoleKey.Enter)
         {
-            if (key.Key == ConsoleKey.Backspace && input.Length > 0)
+            if (key == (int)ConsoleKey.Backspace && input.Length > 0)
             {
                 input.Remove(input.Length - 1, 1);
                 Console.Write("\b \b");
             }
-            else if (!char.IsControl(key.KeyChar))
+            // if not control character add to input
+            else if (!char.IsControl((char)key))
             {
-                input.Append(key.KeyChar);
-                Console.Write(key.KeyChar);
+                input.Append((char)key);
             }
         }
 
-        Console.WriteLine();
         return input.Length > 0 ? input.ToString() : defaultValue;
     }
 
@@ -236,7 +233,6 @@ public class ConsoleUI
             {
                 watchList.RemoveAt(id - 1);
                 SaveWatchList();
-                Console.WriteLine("Item deleted successfully.");
             }
             else
             {
@@ -271,5 +267,11 @@ public class ConsoleUI
     void SortWatchListByTitle()
     {
         watchList.Sort((x, y) => string.Compare(x.Title, y.Title, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void ClearWatchList()
+    {
+        watchList.Clear();
+        SaveWatchList();
     }
 }
