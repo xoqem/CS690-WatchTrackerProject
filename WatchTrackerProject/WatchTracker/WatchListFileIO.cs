@@ -3,11 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace WatchTracker;
 
-class FileSaver
+class WatchListFileIO
 {
     private string filePath;
 
-    public FileSaver(string filePath)
+    public WatchListFileIO(string filePath)
     {
         this.filePath = filePath;
     }

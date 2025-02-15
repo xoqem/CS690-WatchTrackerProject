@@ -10,13 +10,13 @@ enum ItemType
 
 class ConsoleUI
 {
-    List<WatchItem> watchList = new List<WatchItem>();
-    FileSaver fileSaver;
+    List<WatchItem> watchList;
+    WatchListFileIO watchListFileIO;
 
     public ConsoleUI()
     {
-        fileSaver = new FileSaver("watchlist.json");
-        watchList = fileSaver.LoadWatchList();
+        watchListFileIO = new WatchListFileIO("watchlist.json");
+        watchList = watchListFileIO.LoadWatchList();
         SortWatchListByTitle();
     }
 
@@ -42,9 +42,6 @@ class ConsoleUI
             int option;
             if (int.TryParse(input, out option))
             {
-                DisplayWatchList();
-                Console.WriteLine("");
-
                 switch (option)
                 {
                     case 1:
@@ -157,6 +154,7 @@ class ConsoleUI
 
     void AddItem()
     {
+        Console.WriteLine("");
         Console.WriteLine("========== Add Item ==========");
         var newItem = BuildWatchItem(new WatchItem());
         watchList.Add(newItem);
@@ -166,6 +164,7 @@ class ConsoleUI
 
     void EditItem()
     {
+        Console.WriteLine("");
         Console.WriteLine("========== Edit Item ==========");
         Console.WriteLine("Enter the id of the item you wish to edit (or press enter to return to the watch list):");
         string? idInput = Console.ReadLine();
@@ -217,6 +216,7 @@ class ConsoleUI
 
     void DeleteItem()
     {
+        Console.WriteLine("");
         Console.WriteLine("========== Delete Item ==========");
         Console.WriteLine("Enter the id of the item you wish to delete (or press enter to return to the watch list):");
         string? idInput = Console.ReadLine();
@@ -265,7 +265,7 @@ class ConsoleUI
     public void SaveWatchList()
     {
         SortWatchListByTitle();
-        fileSaver.SaveWatchList(watchList);
+        watchListFileIO.SaveWatchList(watchList);
     }
 
     void SortWatchListByTitle()
