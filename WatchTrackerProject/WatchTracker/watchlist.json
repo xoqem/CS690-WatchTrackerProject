@@ -1,26 +1,28 @@
-[
-  {
-    "Title": "Impossible Mission",
-    "Genre": "Thriller",
-    "Progress": "45 minutes in",
-    "ItemType": "Movie"
-  },
-  {
-    "Title": "Severance",
-    "Genre": "Drama",
-    "Progress": "Season 2, Episode 3",
-    "ItemType": "TV Show"
-  },
-  {
-    "Title": "The Big Bang Theory",
-    "Genre": "Comedy",
-    "Progress": "Season 2, Episode 4",
-    "ItemType": "TV Show"
-  },
-  {
-    "Title": "Young Sheldon",
-    "Genre": "Comedy",
-    "Progress": "Season 5, Episode 1",
-    "ItemType": "TV Show"
-  }
-]
+{
+  "Items": [
+    {
+      "Title": "Impossible Mission",
+      "Genre": "Thriller",
+      "Progress": "45 minutes in",
+      "ItemType": 1
+    },
+    {
+      "Title": "Severance",
+      "Genre": "Drama",
+      "Progress": "Season 2, Episode 3",
+      "ItemType": 2
+    },
+    {
+      "Title": "The Big Bang Theory",
+      "Genre": "Comedy",
+      "Progress": "Season 2, Episode 4",
+      "ItemType": 2
+    },
+    {
+      "Title": "Young Sheldon",
+      "Genre": "Comedy",
+      "Progress": "Season 5, Episode 1",
+      "ItemType": 2
+    }
+  ]
+}
