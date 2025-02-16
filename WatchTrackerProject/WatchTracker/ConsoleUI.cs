@@ -2,22 +2,16 @@ using System.Text;
 
 namespace WatchTracker;
 
-enum ItemType
-{
-    Movie = 1,
-    TVShow = 2
-}
-
 public class ConsoleUI
 {
-    List<WatchItem> watchList;
+    WatchList watchList;
     WatchListFileIO watchListFileIO;
 
     public ConsoleUI()
     {
         watchListFileIO = new WatchListFileIO("watchlist.json");
         watchList = watchListFileIO.LoadWatchList();
-        SortWatchListByTitle();
+        watchList.SortByTitle();
     }
 
     public void Show()
@@ -74,7 +68,7 @@ public class ConsoleUI
 
     string GetWatchListItemDisplayString(int i)
     {
-        var item = watchList[i];
+        var item = watchList.Items[i];
         return $"{i + 1}. Title: {item.Title}, Genre: {item.Genre}, Progress: {item.Progress}, Type: {item.ItemType}";
     }
 
@@ -82,45 +76,23 @@ public class ConsoleUI
     {
         Console.Clear();
         Console.WriteLine("========== Watch List ==========");
-        if (watchList.Count == 0)
+        if (watchList.Items.Count == 0)
         {
             Console.WriteLine("No items in watch list.");
         }
         else
         {
-            for (int i = 0; i < watchList.Count; i++)
+            for (int i = 0; i < watchList.Items.Count; i++)
             {
                 Console.WriteLine(GetWatchListItemDisplayString(i));
             }
         }
     }
 
-    string ItemTypeIdToName(string? itemTypeId)
-    {
-        if (int.TryParse(itemTypeId, out var itemType))
-        {
-            if (Enum.IsDefined(typeof(ItemType), itemType))
-            {
-                return ((ItemType)itemType).ToString();
-            }
-        }
-        return "";
-    }
-
-    string ItemTypeNameToId(string? itemTypeName)
-    {
-        if (Enum.TryParse(typeof(ItemType), itemTypeName, out var itemType))
-        {
-            return ((int)itemType).ToString();
-        }
-
-        return "";
-    }
-
     string GenerateItemTypeOptions()
     {
         var itemTypeOptions = new StringBuilder();
-        foreach (ItemType itemType in Enum.GetValues(typeof(ItemType)))
+        foreach (WatchItemType itemType in Enum.GetValues(typeof(WatchItemType)))
         {
             itemTypeOptions.Append($"[{(int)itemType}] {itemType}, ");
         }
@@ -132,8 +104,8 @@ public class ConsoleUI
         item.Title = ReadLineWithDefault("Enter title", item.Title);
         item.Genre = ReadLineWithDefault("Enter genre", item.Genre);
         item.Progress = ReadLineWithDefault("Enter progress", item.Progress);
-        item.ItemType = ItemTypeIdToName(
-            ReadLineWithDefault($"Enter item type: {GenerateItemTypeOptions()}", ItemTypeNameToId(item.ItemType))
+        item.SetItemTypeFromId(
+            ReadLineWithDefault($"Enter item type: {GenerateItemTypeOptions()}", item.GetItemTypeAsId())
         );
 
         return item;
@@ -144,7 +116,7 @@ public class ConsoleUI
         Console.WriteLine("");
         Console.WriteLine("========== Add Item ==========");
         var newItem = BuildWatchItem(new WatchItem());
-        watchList.Add(newItem);
+        watchList.Items.Add(newItem);
         SaveWatchList();
     }
 
@@ -160,12 +132,12 @@ public class ConsoleUI
         }
 
         int id;
-        if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Count)
+        if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Items.Count)
         {
-            var item = watchList[id - 1];
+            var item = watchList.Items[id - 1];
             Console.WriteLine($"Editing item: {GetWatchListItemDisplayString(id - 1)}");
             var updatedItem = BuildWatchItem(item);
-            watchList[id - 1] = updatedItem;
+            watchList.Items[id - 1] = updatedItem;
             SaveWatchList();
         }
         else
@@ -204,14 +176,14 @@ public class ConsoleUI
 
         int id;
 
-        if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Count)
+        if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Items.Count)
         {
-            var item = watchList[id - 1];
+            var item = watchList.Items[id - 1];
             Console.Write($"Are you sure you want to delete: {item.Title}? [y/n] ❯ ");
             string? confirmation = Console.ReadLine();
             if (confirmation?.ToLower() == "y")
             {
-                watchList.RemoveAt(id - 1);
+                watchList.Items.RemoveAt(id - 1);
                 SaveWatchList();
             }
         }
@@ -233,18 +205,13 @@ public class ConsoleUI
 
     public void SaveWatchList()
     {
-        SortWatchListByTitle();
+        watchList.SortByTitle();
         watchListFileIO.SaveWatchList(watchList);
-    }
-
-    void SortWatchListByTitle()
-    {
-        watchList.Sort((x, y) => string.Compare(x.Title, y.Title, StringComparison.OrdinalIgnoreCase));
     }
 
     public void ClearWatchList()
     {
-        watchList.Clear();
+        watchList.Items.Clear();
         SaveWatchList();
     }
 }

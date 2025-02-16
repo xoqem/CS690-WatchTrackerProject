@@ -5,6 +5,8 @@ public class ConsoleUITests
     [Fact]
     public void Test_ConsoleUI_Show()
     {
+        File.Delete("watchlist.json");
+
         var consoleUI = new ConsoleUI();
         var sw = new StringWriter();
 
@@ -81,7 +83,7 @@ public class ConsoleUITests
             "Enter title (or press enter to keep value \"Test title1\") ❯ ",
             "Enter genre (or press enter to keep value \"Test genre1\") ❯ ",
             "Enter progress (or press enter to keep value \"Test progress1\") ❯ ",
-            "Enter item type: [1] Movie, [2] TVShow (or press enter to keep value \"1\") ❯ ",
+            "Enter item type: [1] Movie, [2] TVShow (or press enter to keep value \"Movie\") ❯ ",
 
             // console is cleared here
             "========== Watch List ==========\n",
@@ -110,6 +112,8 @@ public class ConsoleUITests
         {
             result = AssertContainsAndReturnAfterMatch(expectedOutput[i], result);
         }
+
+        File.Delete("watchlist.json");
     }
 
     // util function to find a match in result string, assert that its found, then return everything after the match
