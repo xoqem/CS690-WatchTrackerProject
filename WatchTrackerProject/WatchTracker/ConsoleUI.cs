@@ -36,7 +36,8 @@ public class ConsoleUI
                 error = null;
             }
 
-            Console.WriteLine("Please enter an option: [1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit");
+            Console.WriteLine("[1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit");
+            Console.Write("Please enter an option ❯ ");
 
             string? input = Console.ReadLine();
             int option;
@@ -128,26 +129,12 @@ public class ConsoleUI
 
     WatchItem BuildWatchItem(WatchItem item)
     {
-        item.Title = ReadLineWithDefault("Enter title:", item.Title);
-        item.Genre = ReadLineWithDefault("Enter genre:", item.Genre);
-        item.Progress = ReadLineWithDefault("Enter progress:", item.Progress);
-
-        string itemType;
-        while (true)
-        {
-            Console.WriteLine($"Select item type: {GenerateItemTypeOptions()}");
-            string? itemTypeId = ReadLineWithDefault("Enter item type:", ItemTypeNameToId(item.ItemType));
-            itemType = ItemTypeIdToName(itemTypeId);
-            if (!string.IsNullOrEmpty(itemType))
-            {
-                item.ItemType = itemType;
-                break;
-            }
-            else
-            {
-                Console.WriteLine("Invalid item type. Please try again.");
-            }
-        }
+        item.Title = ReadLineWithDefault("Enter title", item.Title);
+        item.Genre = ReadLineWithDefault("Enter genre", item.Genre);
+        item.Progress = ReadLineWithDefault("Enter progress", item.Progress);
+        item.ItemType = ItemTypeIdToName(
+            ReadLineWithDefault($"Enter item type: {GenerateItemTypeOptions()}", ItemTypeNameToId(item.ItemType))
+        );
 
         return item;
     }
@@ -165,7 +152,7 @@ public class ConsoleUI
     {
         Console.WriteLine("");
         Console.WriteLine("========== Edit Item ==========");
-        Console.WriteLine("Enter the id of the item you wish to edit (or press enter to return to the watch list):");
+        Console.Write("Enter the id of the item you wish to edit (or press enter to return to the main menu) ❯ ");
         string? idInput = Console.ReadLine();
         if (string.IsNullOrEmpty(idInput))
         {
@@ -190,32 +177,25 @@ public class ConsoleUI
     string ReadLineWithDefault(string prompt, string? defaultValue)
     {
         defaultValue ??= string.Empty;
-        Console.Write($"{prompt} {defaultValue}");
-        var input = new StringBuilder(defaultValue);
-        
-        int key;
-        while ((key = Console.Read()) != (int)ConsoleKey.Enter)
+        string finalPrompt;
+        if (!string.IsNullOrEmpty(defaultValue))
         {
-            if (key == (int)ConsoleKey.Backspace && input.Length > 0)
-            {
-                input.Remove(input.Length - 1, 1);
-                Console.Write("\b \b");
-            }
-            // if not control character add to input
-            else if (!char.IsControl((char)key))
-            {
-                input.Append((char)key);
-            }
+            finalPrompt = $"{prompt} (or press enter to keep value \"{defaultValue}\") ❯ ";
         }
-
-        return input.Length > 0 ? input.ToString() : defaultValue;
+        else
+        {
+            finalPrompt = $"{prompt} ❯ ";
+        }
+        Console.Write(finalPrompt);
+        var input = Console.ReadLine();
+        return string.IsNullOrEmpty(input) ? defaultValue : input;
     }
 
     void DeleteItem()
     {
         Console.WriteLine("");
         Console.WriteLine("========== Delete Item ==========");
-        Console.WriteLine("Enter the id of the item you wish to delete (or press enter to return to the watch list):");
+        Console.Write("Enter the id of the item you wish to delete (or press enter to return to the main menu) ❯ ");
         string? idInput = Console.ReadLine();
         if (string.IsNullOrEmpty(idInput))
         {
@@ -227,21 +207,13 @@ public class ConsoleUI
         if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Count)
         {
             var item = watchList[id - 1];
-            Console.WriteLine($"Are you sure you want to delete: {item.Title}? [y/n]");
+            Console.Write($"Are you sure you want to delete: {item.Title}? [y/n] ❯ ");
             string? confirmation = Console.ReadLine();
             if (confirmation?.ToLower() == "y")
             {
                 watchList.RemoveAt(id - 1);
                 SaveWatchList();
             }
-            else
-            {
-                Console.WriteLine("Deletion cancelled.");
-            }
-        }
-        else
-        {
-            Console.WriteLine("Invalid id. Please try again.");
         }
     }
 
@@ -249,7 +221,7 @@ public class ConsoleUI
     {
         Console.WriteLine("");
         Console.WriteLine("========== Filter List ==========");
-        Console.WriteLine("Filtering is not implemented yet. Press enter to return to the main menu.");
+        Console.Write("Filtering is not implemented yet. Press enter to return to the main menu. ❯ ");
         Console.ReadLine();
     }
 
