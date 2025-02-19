@@ -29,11 +29,21 @@ public class ConsoleUITests
         console.Input.PushTextWithEnter(""); // press enter to keep the existing genre
         console.Input.PushTextWithEnter(""); // press enter to keep the existing progress
         console.Input.PushTextWithEnter(""); // Press enter to keep the existing item type
+        console.Input.PushTextWithEnter("4"); // Filter list
+        console.Input.PushTextWithEnter("Test title3");
+        console.Input.PushTextWithEnter(""); // press enter to not filter by genre
+        console.Input.PushTextWithEnter(""); // press enter to not filter by progress
+        console.Input.PushTextWithEnter(""); // Press enter to not filter by item type
+        console.Input.PushTextWithEnter("4"); // Filter list
+        console.Input.PushTextWithEnter(""); // press enter to not filter by title
+        console.Input.PushTextWithEnter(""); // press enter to not filter by genre
+        console.Input.PushTextWithEnter(""); // press enter to not filter by progress
+        console.Input.PushTextWithEnter(""); // Press enter to not filter by item type
         console.Input.PushTextWithEnter("3"); // Delete item
         console.Input.PushTextWithEnter("1"); // Select first item
         console.Input.PushTextWithEnter("y"); // Confirm deletion
         console.Input.PushTextWithEnter("5"); // Exit
-        
+
         AnsiConsole.Console = console;
 
         // just setting the test console to something really large, so the test output doesn't
@@ -43,7 +53,7 @@ public class ConsoleUITests
         consoleUI.Show();
 
         string[] expectedOutput = [
-            // console is cleared here
+            // add first item
             "========== Watch List ==========\n",
             "No items in watch list.\n",
             "\n",
@@ -57,7 +67,7 @@ public class ConsoleUITests
             "Enter progress: Test progress1\n",
             "Enter item type: [1] Movie, [2] TVShow: 1\n",
 
-            // console is cleared here
+            // add second item
             "========== Watch List ==========\n",
             "1. Title: Test title1, Genre: Test genre1, Progress: Test progress1, Type: Movie\n",
             "\n",
@@ -71,7 +81,7 @@ public class ConsoleUITests
             "Enter progress: Test progress2\n",
             "Enter item type: [1] Movie, [2] TVShow: 2\n",
 
-            // console is cleared here
+            // edit item
             "========== Watch List ==========\n",
             "1. Title: Test title1, Genre: Test genre1, Progress: Test progress1, Type: Movie\n",
             "2. Title: Test title2, Genre: Test genre2, Progress: Test progress2, Type: TVShow\n",
@@ -88,7 +98,40 @@ public class ConsoleUITests
             "Enter progress: (Test progress1): Test progress1\n",
             "Enter item type: [1] Movie, [2] TVShow: (1): 1\n",
 
-            // console is cleared here
+            // add filters
+            "========== Watch List ==========\n",
+            "1. Title: Test title2, Genre: Test genre2, Progress: Test progress2, Type: TVShow\n",
+            "2. Title: Test title3, Genre: Test genre1, Progress: Test progress1, Type: Movie\n",
+            "\n",
+            "========== Main Menu ==========\n",
+            "[1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit\n",
+            "Please enter an option: 4\n",
+            "\n",
+            "========== Filter List ==========\n",
+            "Enter the values to filter by below. Leave a field blank to not filter by that field.\n",
+            "Enter title: Test title3\n",
+            "Enter genre: \n",
+            "Enter progress: \n",
+            "Enter item type: [1] Movie, [2] TVShow: \n",
+
+            // remove filters
+            "========== Watch List ==========\n",
+            "Filtering by: Title: Test title3\n",
+            "\n",
+            "2. Title: Test title3, Genre: Test genre1, Progress: Test progress1, Type: Movie\n",
+            "\n",
+            "========== Main Menu ==========\n",
+            "[1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit\n",
+            "Please enter an option: 4\n",
+            "\n",
+            "========== Filter List ==========\n",
+            "Enter the values to filter by below. Leave a field blank to not filter by that field.\n",
+            "Enter title: \n",
+            "Enter genre: \n",
+            "Enter progress: \n",
+            "Enter item type: [1] Movie, [2] TVShow: \n",
+
+            // delete item
             "========== Watch List ==========\n",
             "1. Title: Test title2, Genre: Test genre2, Progress: Test progress2, Type: TVShow\n",
             "2. Title: Test title3, Genre: Test genre1, Progress: Test progress1, Type: Movie\n",
@@ -101,7 +144,7 @@ public class ConsoleUITests
             "Enter the id of the item you wish to delete (or press enter to return to the main menu): 1\n",
             "Are you sure you want to delete: Test title2? [y/n] (y): y\n",
 
-            // console is cleared here
+            // exit
             "========== Watch List ==========\n",
             "1. Title: Test title3, Genre: Test genre1, Progress: Test progress1, Type: Movie\n",
             "\n",
