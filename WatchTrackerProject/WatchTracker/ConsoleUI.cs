@@ -38,8 +38,7 @@ public class ConsoleUI
                 new TextPrompt<string>("Please enter an option:")
             );
 
-            int option;
-            if (int.TryParse(input, out option))
+            if (int.TryParse(input, out var option))
             {
                 switch (option)
                 {
@@ -53,10 +52,10 @@ public class ConsoleUI
                         DeleteItem();
                         break;
                     case 4:
-                        FilterList();
+                        CreateFilter();
                         break;
                     case 5:
-                        Exit();
+                        ShowExitMessage();
                         return;
                     default:
                         error = "Invalid option. Please try again.";
@@ -70,21 +69,9 @@ public class ConsoleUI
         }
     }
 
-    string GetWatchItemDisplayString(WatchItem? item)
-    {
-        var displayStringItems = new List<string>();
-        
-        if (!string.IsNullOrEmpty(item?.Title)) displayStringItems.Add($"Title: {item?.Title}");
-        if (!string.IsNullOrEmpty(item?.Genre)) displayStringItems.Add($"Genre: {item?.Genre}");
-        if (!string.IsNullOrEmpty(item?.Progress)) displayStringItems.Add($"Progress: {item?.Progress}");
-        if (!string.IsNullOrEmpty(item?.ItemType?.ToString())) displayStringItems.Add($"Type: {item?.ItemType}");
-
-        return string.Join(", ", displayStringItems);
-    }
-
     string GetWatchListItemDisplayString(int i)
     {
-        return $"{i + 1}. {GetWatchItemDisplayString(watchList.Items[i])}";
+        return $"{i + 1}. {watchList.Items[i].GetDisplayString()}";
     }
 
     void DisplayWatchList()
@@ -99,38 +86,19 @@ public class ConsoleUI
         {
             if (filter != null)
             {
-                AnsiConsole.WriteLine($"Filtering by: {GetWatchItemDisplayString(filter)}");
+                AnsiConsole.WriteLine($"Filtering by: {filter.GetDisplayString()}");
                 AnsiConsole.WriteLine("");
             }
 
             for (int i = 0; i < watchList.Items.Count; i++)
             {
-                var item = watchList.Items[i];
-                    
-                if (filter != null) {
-                    if (
-                        (!string.IsNullOrEmpty(filter?.Title) && !item.Title?.Contains(filter.Title, StringComparison.OrdinalIgnoreCase) == true) ||
-                        (!string.IsNullOrEmpty(filter?.Genre) && !item.Genre?.Contains(filter.Genre, StringComparison.OrdinalIgnoreCase) == true) ||
-                        (!string.IsNullOrEmpty(filter?.Progress) && !item.Progress?.Contains(filter.Progress, StringComparison.OrdinalIgnoreCase) == true) ||
-                        (filter?.ItemType != null && item.ItemType != filter.ItemType)
-                    ) {
-                        continue;
-                    }
+                // intentionally filtering inside the for, so the indices stay the same with or without filters
+                if (watchList.Items[i].MatchesFilter(filter))
+                {
+                    AnsiConsole.WriteLine(GetWatchListItemDisplayString(i));
                 }
-
-                AnsiConsole.WriteLine(GetWatchListItemDisplayString(i));
             }
         }
-    }
-
-    string GenerateItemTypeOptions()
-    {
-        var itemTypeOptions = new StringBuilder();
-        foreach (WatchItemType itemType in Enum.GetValues(typeof(WatchItemType)))
-        {
-            itemTypeOptions.Append($"[[{(int)itemType}]] {itemType}, ");
-        }
-        return itemTypeOptions.ToString().TrimEnd(',', ' ');
     }
 
     string? PromptWithOptionalDefault(string question, string? defaultValue = null)
@@ -154,7 +122,7 @@ public class ConsoleUI
         item.Progress = PromptWithOptionalDefault("Enter progress:", item.Progress);
         item.ItemType = WatchItemTypeUtils.GetItemTypeFromId(
             PromptWithOptionalDefault(
-                $"Enter item type: {GenerateItemTypeOptions()}:",
+                $"Enter item type: {WatchItemTypeUtils.GetOptions()}:",
                 WatchItemTypeUtils.GetIdFromItemType(item.ItemType)
             )
         );
@@ -193,10 +161,6 @@ public class ConsoleUI
             watchList.Items[id - 1] = updatedItem;
             SaveWatchList();
         }
-        else
-        {
-            AnsiConsole.WriteLine("Invalid id. Please try again.");
-        }
     }
 
     void DeleteItem()
@@ -213,8 +177,7 @@ public class ConsoleUI
             return;
         }
 
-        int id;
-        if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Items.Count)
+        if (int.TryParse(idInput, out var id) && id > 0 && id <= watchList.Items.Count)
         {
             var item = watchList.Items[id - 1];
             bool confirmed = AnsiConsole.Confirm($"Are you sure you want to delete: {item.Title}?");
@@ -226,7 +189,7 @@ public class ConsoleUI
         }
     }
 
-    void FilterList()
+    void CreateFilter()
     {
         AnsiConsole.WriteLine("");
         AnsiConsole.WriteLine("========== Filter List ==========");
@@ -244,7 +207,7 @@ public class ConsoleUI
         }
     }
 
-    void Exit()
+    void ShowExitMessage()
     {
         AnsiConsole.Clear();
         AnsiConsole.WriteLine("Exiting application...");
