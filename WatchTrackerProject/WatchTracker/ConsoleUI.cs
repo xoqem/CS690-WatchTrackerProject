@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text;
 using Spectre.Console;
 
@@ -7,6 +8,7 @@ public class ConsoleUI
 {
     WatchList watchList;
     WatchListFileIO watchListFileIO;
+    WatchItem? filter;
 
     public ConsoleUI()
     {
@@ -68,10 +70,21 @@ public class ConsoleUI
         }
     }
 
+    string GetWatchItemDisplayString(WatchItem? item)
+    {
+        var displayStringItems = new List<string>();
+        
+        if (!string.IsNullOrEmpty(item?.Title)) displayStringItems.Add($"Title: {item?.Title}");
+        if (!string.IsNullOrEmpty(item?.Genre)) displayStringItems.Add($"Genre: {item?.Genre}");
+        if (!string.IsNullOrEmpty(item?.Progress)) displayStringItems.Add($"Progress: {item?.Progress}");
+        if (!string.IsNullOrEmpty(item?.ItemType?.ToString())) displayStringItems.Add($"Type: {item?.ItemType}");
+
+        return string.Join(", ", displayStringItems);
+    }
+
     string GetWatchListItemDisplayString(int i)
     {
-        var item = watchList.Items[i];
-        return $"{i + 1}. Title: {item.Title}, Genre: {item.Genre}, Progress: {item.Progress}, Type: {item.ItemType}";
+        return $"{i + 1}. {GetWatchItemDisplayString(watchList.Items[i])}";
     }
 
     void DisplayWatchList()
@@ -84,8 +97,27 @@ public class ConsoleUI
         }
         else
         {
+            if (filter != null)
+            {
+                AnsiConsole.WriteLine($"Filtering by: {GetWatchItemDisplayString(filter)}");
+                AnsiConsole.WriteLine("");
+            }
+
             for (int i = 0; i < watchList.Items.Count; i++)
             {
+                var item = watchList.Items[i];
+                    
+                if (filter != null) {
+                    if (
+                        (!string.IsNullOrEmpty(filter?.Title) && !item.Title?.Contains(filter.Title, StringComparison.OrdinalIgnoreCase) == true) ||
+                        (!string.IsNullOrEmpty(filter?.Genre) && !item.Genre?.Contains(filter.Genre, StringComparison.OrdinalIgnoreCase) == true) ||
+                        (!string.IsNullOrEmpty(filter?.Progress) && !item.Progress?.Contains(filter.Progress, StringComparison.OrdinalIgnoreCase) == true) ||
+                        (filter?.ItemType != null && item.ItemType != filter.ItemType)
+                    ) {
+                        continue;
+                    }
+                }
+
                 AnsiConsole.WriteLine(GetWatchListItemDisplayString(i));
             }
         }
@@ -120,8 +152,11 @@ public class ConsoleUI
         item.Title = PromptWithOptionalDefault("Enter title:", item.Title);
         item.Genre = PromptWithOptionalDefault("Enter genre:", item.Genre);
         item.Progress = PromptWithOptionalDefault("Enter progress:", item.Progress);
-        item.SetItemTypeFromId(
-            PromptWithOptionalDefault($"Enter item type: {GenerateItemTypeOptions()}:", item.GetItemTypeAsId())
+        item.ItemType = WatchItemTypeUtils.GetItemTypeFromId(
+            PromptWithOptionalDefault(
+                $"Enter item type: {GenerateItemTypeOptions()}:",
+                WatchItemTypeUtils.GetIdFromItemType(item.ItemType)
+            )
         );
 
         return item;
@@ -150,8 +185,7 @@ public class ConsoleUI
             return;
         }
 
-        int id;
-        if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Items.Count)
+        if (int.TryParse(idInput, out var id) && id > 0 && id <= watchList.Items.Count)
         {
             var item = watchList.Items[id - 1];
             AnsiConsole.WriteLine($"Editing item: {GetWatchListItemDisplayString(id - 1)}");
@@ -180,7 +214,6 @@ public class ConsoleUI
         }
 
         int id;
-
         if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Items.Count)
         {
             var item = watchList.Items[id - 1];
@@ -197,9 +230,18 @@ public class ConsoleUI
     {
         AnsiConsole.WriteLine("");
         AnsiConsole.WriteLine("========== Filter List ==========");
-        AnsiConsole.Prompt(new TextPrompt<string>("Filtering is not implemented yet. Press enter to return to the main menu:")
-            .AllowEmpty()
-        );
+        AnsiConsole.WriteLine("Enter the values to filter by below. Leave a field blank to not filter by that field.");
+
+        filter = BuildWatchItem(new WatchItem());
+
+        if (
+            string.IsNullOrEmpty(filter.Title) &&
+            string.IsNullOrEmpty(filter.Genre) &&
+            string.IsNullOrEmpty(filter.Progress) &&
+            filter.ItemType == null)
+        {
+            filter = null;
+        }
     }
 
     void Exit()
