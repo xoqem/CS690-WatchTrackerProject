@@ -1,4 +1,5 @@
 using System.Text;
+using Spectre.Console;
 
 namespace WatchTracker;
 
@@ -21,19 +22,20 @@ public class ConsoleUI
         while (true)
         {
             DisplayWatchList();
-            Console.WriteLine("");
-            Console.WriteLine("========== Main Menu ==========");
+            AnsiConsole.WriteLine("");
+            AnsiConsole.WriteLine("========== Main Menu ==========");
 
             if (error != null)
             {
-                Console.WriteLine(error);
+                AnsiConsole.WriteLine(error);
                 error = null;
             }
 
-            Console.WriteLine("[1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit");
-            Console.Write("Please enter an option ❯ ");
+            AnsiConsole.WriteLine("[1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit");
+            string input = AnsiConsole.Prompt(
+                new TextPrompt<string>("Please enter an option:")
+            );
 
-            string? input = Console.ReadLine();
             int option;
             if (int.TryParse(input, out option))
             {
@@ -74,17 +76,17 @@ public class ConsoleUI
 
     void DisplayWatchList()
     {
-        Console.Clear();
-        Console.WriteLine("========== Watch List ==========");
+        AnsiConsole.Clear();
+        AnsiConsole.WriteLine("========== Watch List ==========");
         if (watchList.Items.Count == 0)
         {
-            Console.WriteLine("No items in watch list.");
+            AnsiConsole.WriteLine("No items in watch list.");
         }
         else
         {
             for (int i = 0; i < watchList.Items.Count; i++)
             {
-                Console.WriteLine(GetWatchListItemDisplayString(i));
+                AnsiConsole.WriteLine(GetWatchListItemDisplayString(i));
             }
         }
     }
@@ -94,18 +96,32 @@ public class ConsoleUI
         var itemTypeOptions = new StringBuilder();
         foreach (WatchItemType itemType in Enum.GetValues(typeof(WatchItemType)))
         {
-            itemTypeOptions.Append($"[{(int)itemType}] {itemType}, ");
+            itemTypeOptions.Append($"[[{(int)itemType}]] {itemType}, ");
         }
         return itemTypeOptions.ToString().TrimEnd(',', ' ');
     }
 
+    string? PromptWithOptionalDefault(string question, string? defaultValue = null)
+    {
+        var textPrompt = new TextPrompt<string?>(question)
+            .DefaultValue(defaultValue)
+            .AllowEmpty();
+
+        if (string.IsNullOrEmpty(defaultValue))
+        {
+            textPrompt.HideDefaultValue();
+        }
+
+        return AnsiConsole.Prompt(textPrompt);
+    }
+
     WatchItem BuildWatchItem(WatchItem item)
     {
-        item.Title = ReadLineWithDefault("Enter title", item.Title);
-        item.Genre = ReadLineWithDefault("Enter genre", item.Genre);
-        item.Progress = ReadLineWithDefault("Enter progress", item.Progress);
+        item.Title = PromptWithOptionalDefault("Enter title:", item.Title);
+        item.Genre = PromptWithOptionalDefault("Enter genre:", item.Genre);
+        item.Progress = PromptWithOptionalDefault("Enter progress:", item.Progress);
         item.SetItemTypeFromId(
-            ReadLineWithDefault($"Enter item type: {GenerateItemTypeOptions()}", item.GetItemTypeAsId())
+            PromptWithOptionalDefault($"Enter item type: {GenerateItemTypeOptions()}:", item.GetItemTypeAsId())
         );
 
         return item;
@@ -113,8 +129,8 @@ public class ConsoleUI
 
     void AddItem()
     {
-        Console.WriteLine("");
-        Console.WriteLine("========== Add Item ==========");
+        AnsiConsole.WriteLine("");
+        AnsiConsole.WriteLine("========== Add Item ==========");
         var newItem = BuildWatchItem(new WatchItem());
         watchList.Items.Add(newItem);
         SaveWatchList();
@@ -122,10 +138,13 @@ public class ConsoleUI
 
     void EditItem()
     {
-        Console.WriteLine("");
-        Console.WriteLine("========== Edit Item ==========");
-        Console.Write("Enter the id of the item you wish to edit (or press enter to return to the main menu) ❯ ");
-        string? idInput = Console.ReadLine();
+        AnsiConsole.WriteLine("");
+        AnsiConsole.WriteLine("========== Edit Item ==========");
+        string idInput = AnsiConsole.Prompt(
+            new TextPrompt<string>("Enter the id of the item you wish to edit (or press enter to return to the main menu):")
+                .AllowEmpty()
+        );
+
         if (string.IsNullOrEmpty(idInput))
         {
             return;
@@ -135,40 +154,26 @@ public class ConsoleUI
         if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Items.Count)
         {
             var item = watchList.Items[id - 1];
-            Console.WriteLine($"Editing item: {GetWatchListItemDisplayString(id - 1)}");
+            AnsiConsole.WriteLine($"Editing item: {GetWatchListItemDisplayString(id - 1)}");
             var updatedItem = BuildWatchItem(item);
             watchList.Items[id - 1] = updatedItem;
             SaveWatchList();
         }
         else
         {
-            Console.WriteLine("Invalid id. Please try again.");
+            AnsiConsole.WriteLine("Invalid id. Please try again.");
         }
-    }
-
-    string ReadLineWithDefault(string prompt, string? defaultValue)
-    {
-        defaultValue ??= string.Empty;
-        string finalPrompt;
-        if (!string.IsNullOrEmpty(defaultValue))
-        {
-            finalPrompt = $"{prompt} (or press enter to keep value \"{defaultValue}\") ❯ ";
-        }
-        else
-        {
-            finalPrompt = $"{prompt} ❯ ";
-        }
-        Console.Write(finalPrompt);
-        var input = Console.ReadLine();
-        return string.IsNullOrEmpty(input) ? defaultValue : input;
     }
 
     void DeleteItem()
     {
-        Console.WriteLine("");
-        Console.WriteLine("========== Delete Item ==========");
-        Console.Write("Enter the id of the item you wish to delete (or press enter to return to the main menu) ❯ ");
-        string? idInput = Console.ReadLine();
+        AnsiConsole.WriteLine("");
+        AnsiConsole.WriteLine("========== Delete Item ==========");
+        string idInput = AnsiConsole.Prompt(
+            new TextPrompt<string>("Enter the id of the item you wish to delete (or press enter to return to the main menu):")
+                .AllowEmpty()
+        );
+
         if (string.IsNullOrEmpty(idInput))
         {
             return;
@@ -179,9 +184,8 @@ public class ConsoleUI
         if (int.TryParse(idInput, out id) && id > 0 && id <= watchList.Items.Count)
         {
             var item = watchList.Items[id - 1];
-            Console.Write($"Are you sure you want to delete: {item.Title}? [y/n] ❯ ");
-            string? confirmation = Console.ReadLine();
-            if (confirmation?.ToLower() == "y")
+            bool confirmed = AnsiConsole.Confirm($"Are you sure you want to delete: {item.Title}?");
+            if (confirmed)
             {
                 watchList.Items.RemoveAt(id - 1);
                 SaveWatchList();
@@ -191,16 +195,17 @@ public class ConsoleUI
 
     void FilterList()
     {
-        Console.WriteLine("");
-        Console.WriteLine("========== Filter List ==========");
-        Console.Write("Filtering is not implemented yet. Press enter to return to the main menu. ❯ ");
-        Console.ReadLine();
+        AnsiConsole.WriteLine("");
+        AnsiConsole.WriteLine("========== Filter List ==========");
+        AnsiConsole.Prompt(new TextPrompt<string>("Filtering is not implemented yet. Press enter to return to the main menu:")
+            .AllowEmpty()
+        );
     }
 
     void Exit()
     {
-        Console.Clear();
-        Console.WriteLine("Exiting application...");
+        AnsiConsole.Clear();
+        AnsiConsole.WriteLine("Exiting application...");
     }
 
     public void SaveWatchList()
