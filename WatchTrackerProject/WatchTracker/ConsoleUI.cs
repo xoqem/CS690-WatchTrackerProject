@@ -23,15 +23,21 @@ public class ConsoleUI
 
         while (true)
         {
+            if (error != null)
+            {
+                AnsiConsole.WriteLine("");
+                string idInput = AnsiConsole.Prompt(
+                    new TextPrompt<string>($"{error} Press enter to continue.")
+                        .AllowEmpty()
+                );
+
+                error = null;
+            }
+
+            AnsiConsole.Clear();
             DisplayWatchList();
             AnsiConsole.WriteLine("");
             AnsiConsole.WriteLine("========== Main Menu ==========");
-
-            if (error != null)
-            {
-                AnsiConsole.WriteLine(error);
-                error = null;
-            }
 
             AnsiConsole.WriteLine("[1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit");
             string input = AnsiConsole.Prompt(
@@ -76,7 +82,6 @@ public class ConsoleUI
 
     void DisplayWatchList()
     {
-        AnsiConsole.Clear();
         AnsiConsole.WriteLine("========== Watch List ==========");
         if (watchList.Items.Count == 0)
         {
@@ -217,11 +222,5 @@ public class ConsoleUI
     {
         watchList.SortByTitle();
         watchListFileIO.SaveWatchList(watchList);
-    }
-
-    public void ClearWatchList()
-    {
-        watchList.Items.Clear();
-        SaveWatchList();
     }
 }
