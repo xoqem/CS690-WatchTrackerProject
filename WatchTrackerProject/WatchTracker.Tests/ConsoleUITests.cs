@@ -10,9 +10,11 @@ public class ConsoleUITests
     {
         File.Delete("watchlist.json");
 
-        var consoleUI = new ConsoleUI();
-
         var console = new TestConsole();
+        console.Input.PushTextWithEnter("6"); // input an invalid number for the main menu
+        console.Input.PushTextWithEnter(""); // press enter to return to the main menu
+        console.Input.PushTextWithEnter("a"); // input an invalid character for the main menu
+        console.Input.PushTextWithEnter(""); // press enter to return to the main menu
         console.Input.PushTextWithEnter("1"); // Add item
         console.Input.PushTextWithEnter("Test title1");
         console.Input.PushTextWithEnter("Test genre1");
@@ -23,6 +25,8 @@ public class ConsoleUITests
         console.Input.PushTextWithEnter("Test genre2");
         console.Input.PushTextWithEnter("Test progress2");
         console.Input.PushTextWithEnter("2"); // TVShow Type
+        console.Input.PushTextWithEnter("2"); // Edit item
+        console.Input.PushTextWithEnter(""); // press enter to return to the main menu
         console.Input.PushTextWithEnter("2"); // Edit item
         console.Input.PushTextWithEnter("1"); // Select first item
         console.Input.PushTextWithEnter("Test title3");
@@ -40,6 +44,8 @@ public class ConsoleUITests
         console.Input.PushTextWithEnter(""); // press enter to not filter by progress
         console.Input.PushTextWithEnter(""); // Press enter to not filter by item type
         console.Input.PushTextWithEnter("3"); // Delete item
+        console.Input.PushTextWithEnter(""); // press enter to return to the main menu
+        console.Input.PushTextWithEnter("3"); // Delete item
         console.Input.PushTextWithEnter("1"); // Select first item
         console.Input.PushTextWithEnter("y"); // Confirm deletion
         console.Input.PushTextWithEnter("5"); // Exit
@@ -50,9 +56,30 @@ public class ConsoleUITests
         // have extra line breaks in the middle of the output
         console.Profile.Width = 500;
 
+        var consoleUI = new ConsoleUI();
         consoleUI.Show();
 
         string[] expectedOutput = [
+            // input an invalid number for the main menu
+            "========== Watch List ==========\n",
+            "No items in watch list.\n",
+            "\n",
+            "========== Main Menu ==========\n",
+            "[1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit\n",
+            "Please enter an option: 6\n",
+            "\n",
+            "Invalid option. Please try again. Press enter to continue. \n",
+
+            // input an invalid character for the main menu
+            "========== Watch List ==========\n",
+            "No items in watch list.\n",
+            "\n",
+            "========== Main Menu ==========\n",
+            "[1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit\n",
+            "Please enter an option: a\n",
+            "\n",
+            "Invalid input. Please try again. Press enter to continue. \n",
+
             // add first item
             "========== Watch List ==========\n",
             "No items in watch list.\n",
@@ -80,6 +107,18 @@ public class ConsoleUITests
             "Enter genre: Test genre2\n",
             "Enter progress: Test progress2\n",
             "Enter item type: [1] Movie, [2] TVShow: 2\n",
+
+            // edit item, but press enter to just return to the main menu
+            "========== Watch List ==========\n",
+            "1. Title: Test title1, Genre: Test genre1, Progress: Test progress1, Type: Movie\n",
+            "2. Title: Test title2, Genre: Test genre2, Progress: Test progress2, Type: TVShow\n",
+            "\n",
+            "========== Main Menu ==========\n",
+            "[1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit\n",
+            "Please enter an option: 2\n",
+            "\n",
+            "========== Edit Item ==========\n",
+            "Enter the id of the item you wish to edit (or press enter to return to the main menu): \n",
 
             // edit item
             "========== Watch List ==========\n",
@@ -130,6 +169,18 @@ public class ConsoleUITests
             "Enter genre: \n",
             "Enter progress: \n",
             "Enter item type: [1] Movie, [2] TVShow: \n",
+
+            // delete item, but press enter to just return to the main menu
+            "========== Watch List ==========\n",
+            "1. Title: Test title2, Genre: Test genre2, Progress: Test progress2, Type: TVShow\n",
+            "2. Title: Test title3, Genre: Test genre1, Progress: Test progress1, Type: Movie\n",
+            "\n",
+            "========== Main Menu ==========\n",
+            "[1] Add item, [2] Edit item, [3] Delete item, [4] Filter list, [5] Exit\n",
+            "Please enter an option: 3\n",
+            "\n",
+            "========== Delete Item ==========\n",
+            "Enter the id of the item you wish to delete (or press enter to return to the main menu): \n",
 
             // delete item
             "========== Watch List ==========\n",
