@@ -16,3 +16,12 @@ dotnet new console -o WatchTracker --use-program-main
 cd WatchTracker
 dotnet run
 ```
+
+Add added these packages while developing for a nicer console UI (Spectre), test coverage (coverlet), and using the test console for Spectre:
+```
+dotnet add package Spectre.Console
+dotnet add package Spectre.Console.Cli
+dotnet add package coverlet.msbuild
+dotnet add ./WatchTrackerProject/WatchTracker.Tests/WatchTracker.Tests.csproj package Spectre.Console.Testing
+```
+
